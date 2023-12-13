@@ -16,6 +16,10 @@ refernce from https://github.com/jenkinsci/chatwork-plugin
   -->
   <f:section title="Global Slack Messages">
 
+  <f:entry title="skip notifying for these Jenkins job names (space separated)" field="jobsToSkip">
+    <f:textbox/>
+  </f:entry>
+
   <f:entry title="channel notifying of success build" field="successRoom">
     <f:textbox/>
   </f:entry>

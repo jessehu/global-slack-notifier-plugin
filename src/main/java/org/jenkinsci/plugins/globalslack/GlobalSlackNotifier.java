@@ -34,6 +34,13 @@ public class GlobalSlackNotifier extends RunListener<Run<?, ?>> implements Descr
         publish( run, listener);
     }
 
+    private String[] getJobNamesToSkip() {
+        String jobs = this.getDescriptorImpl().getJobsToSkip().trim();
+        if (jobs.isEmpty()) {
+            return new String[]{};
+        }
+        return jobs.split(" ", 0);
+    }
 
     public Descriptor<GlobalSlackNotifier> getDescriptor() {
         return getDescriptorImpl();
@@ -103,6 +110,17 @@ public class GlobalSlackNotifier extends RunListener<Run<?, ?>> implements Descr
             choice,!StringUtils.isEmpty(postText),postText, null, null, null, null, null);
           String messageText = getBuildStatusMessage(r,notifier,false,false,!StringUtils.isEmpty(postText));
 
+          // Skip sending message if the current job name is in the skip list.
+          String[] jobNames = this.getJobNamesToSkip();
+          if (jobNames.length > 0) {
+              for (String name : jobNames) {
+                  if (messageText.startsWith(name)) {
+                      logger.info("Skip publishing Slack message for Job " + name);
+                      return;
+                  }
+              }
+          }
+
           SlackService service = new StandardSlackService(baseUrl, teamDomain, authToken, authTokenCredentialId, botUser, room);
           boolean postResult = service.publish(messageText, message.getColor());
           if(!postResult){
@@ -161,6 +179,8 @@ public class GlobalSlackNotifier extends RunListener<Run<?, ?>> implements Descr
         private String abortedMessage;
         private boolean notifyOnAborted;
 
+        private String jobsToSkip;
+
         public DescriptorImpl() {
             try{
                 load();
@@ -199,6 +219,13 @@ public class GlobalSlackNotifier extends RunListener<Run<?, ?>> implements Descr
 
             return true;
         }
+
+		/**
+		 * @return the jobsToSkip
+		 */
+		public String getJobsToSkip() {
+			return jobsToSkip;
+		}
 
 		/**
 		 * @return the successRoom
@@ -304,6 +331,10 @@ public class GlobalSlackNotifier extends RunListener<Run<?, ?>> implements Descr
 			return notifyOnAborted;
 		}
 
+		@DataBoundSetter
+		public void setJobsToSkip(String jobsToSkip) {
+			this.jobsToSkip = jobsToSkip;
+		}
 
 		@DataBoundSetter
         public void setSuccessMessage(String successMessage) { this.successMessage = successMessage; }

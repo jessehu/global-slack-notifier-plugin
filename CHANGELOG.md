@@ -1,3 +1,7 @@
+# 1.6
+
+* Add jobsToSkip parameter to skip publishing msg for specified jobs
+
 # 1.5 
 
 * add casc(configuration as code) support  by eh-am
